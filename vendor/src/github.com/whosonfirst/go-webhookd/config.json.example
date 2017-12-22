@@ -1,0 +1,79 @@
+{
+	"daemon": {
+		"host": "localhost",
+		"port": 8080
+	},
+	"receivers": {
+		"insecure": {
+			"name": "Insecure"
+		},
+		"github": {
+			"name": "GitHub",
+			"secret": "s33kret"
+		},
+		"slack": {
+			"name": "Slack"
+		}		
+	},	
+	"transformations": {
+		"null": {
+			"name": "Null"
+		},
+		"chicken": {
+			"name": "Chicken",
+			"language": "zxx",
+			"clucking": false
+		},
+		"clucking": {
+			"name": "Chicken",
+			"language": "eng",
+			"clucking": true
+		},
+		"slack": {
+			"name": "SlackText"
+		},
+		"commits": {
+			"name": "GitHubCommits",
+			"exclude_additions": true,
+			"exclude_modifications": true,
+			"exclude_deletions": true
+		}				
+		
+	},
+	"dispatchers": {
+		"null": {
+			"name": "Null"
+		},
+		"log": {
+			"name": "Log"
+		},				
+		"pubsub": {
+			"name": "PubSub",
+			"host": "localhost",
+			"port": 6379,
+			"channel": "webhookd"
+		},
+		"slack": {
+			"name": "Slack",
+			"config": "/path/to/.slackcat.conf"
+		}
+	},
+	"webhooks": [
+		{
+			"endpoint": "/github-test",
+			"receiver": "github",
+			"dispatchers": [ "pubsub" ]
+		},
+		{
+			"endpoint": "/insecure-test",
+		 	"receiver": "insecure",
+			"dispatchers": [ "pubsub" ]
+		},
+		{
+			"endpoint": "/slack-test",
+			"receiver": "slack",
+			"transformations": [ "slack", "chicken" ],
+			"dispatchers": [ "slack", "log"]
+		}
+	]
+}
