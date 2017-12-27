@@ -3,10 +3,10 @@ package main
 import (
        "encoding/csv"
 	"flag"
-	"fmt"
+	_ "fmt"
+	"github.com/whosonfirst/go-whosonfirst-redis/pubsub"	
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"	
-	// "github.com/whosonfirst/go-whosonfirst-updated-v2/processor"
-	"gopkg.in/redis.v1"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2/processor"
 	"io"
 	"log"
 	"os"
@@ -18,44 +18,48 @@ func main() {
 	var redis_host = flag.String("redis-host", "localhost", "Redis host")
 	var redis_port = flag.Int("redis-port", 6379, "Redis port")
 	var redis_channel = flag.String("redis-channel", "updated", "Redis channel")
-
+	var pubsub_daemon = flag.Bool("pubsubd", false, "")
+	
 	ps_messages := make(chan string)
 	up_messages := make(chan updated.Task)
 
-	// sudo make a generic receiver interface for things other than pubsub...
-	// (20171227/thisisaaronland)
-	
-	go func() {
+	if *pubsub_daemon {
 
-		redis_endpoint := fmt.Sprintf("%s:%d", *redis_host, *redis_port)
-
-		redis_client := redis.NewTCPClient(&redis.Options{
-			Addr: redis_endpoint,
-		})
-
-		defer redis_client.Close()
-
-		pubsub_client := redis_client.PubSub()
-		defer pubsub_client.Close()
-
-		err := pubsub_client.Subscribe(*redis_channel)
+		server, err := pubsub.NewServer(*redis_host, *redis_port)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		log.Println("Ready to receive (updated) PubSub messages")
+		ready := make(chan bool)
 
-		for {
+		go func() {
 
-			i, _ := pubsub_client.Receive()
+			err := server.ListenAndServeWithReadySignal(ready)
 
-			if msg, _ := i.(*redis.Message); msg != nil {
-				ps_messages <- msg.Payload
+			if err != nil {
+				log.Fatal(err)
 			}
-		}
+		}()
 
-	}()
+		sig := <-ready
+
+		if !sig {
+			log.Fatal("Received negative ready signal from PubSub server")
+		}
+	}
+
+
+	// sudo make a generic receiver interface for things other than pubsub...
+	// (20171227/thisisaaronland)
+
+	sub, err := pubsub.NewSubscriber(*redis_host, *redis_port)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	go sub.Subscribe(*redis_channel, ps_messages)
 
 	go func() {
 
@@ -125,12 +129,26 @@ func main() {
 		}
 	}()
 
+	processors := make([]processor.Processor, 0)
+
+	cp, err := processor.NewCopyProcessor()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	processors = append(processors, cp)
+	
 	for {
 
 		select {
 
 		       case t := <- up_messages:
-		       	    log.Println(t)
+
+		       	for _, pr := range processors {
+				pr.ProcessTask(t)
+			}
+
 		       default:
 			    // pass
 	        }

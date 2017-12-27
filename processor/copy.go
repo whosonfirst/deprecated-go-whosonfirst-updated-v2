@@ -30,7 +30,7 @@ func NewCopyProcessor() (Processor, error) {
 	return &d, nil
 }
 
-func (d *CopyProcessor) Name() error {
+func (d *CopyProcessor) Name() string {
      return "copy"
 }
 

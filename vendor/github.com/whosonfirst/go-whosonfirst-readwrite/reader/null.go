@@ -1,7 +1,7 @@
 package reader
 
 import (
-       "bytes"
+	"bytes"
 	"io"
 )
 
@@ -23,6 +23,6 @@ func NewNullReader() (Reader, error) {
 
 func (r *NullReader) Read(uri string) (io.ReadCloser, error) {
 
-        buf := bytes.NewReader([]byte(uri))
-	return nopCloser{buf}, nil	
+	buf := bytes.NewReader([]byte(uri))
+	return nopCloser{buf}, nil
 }
