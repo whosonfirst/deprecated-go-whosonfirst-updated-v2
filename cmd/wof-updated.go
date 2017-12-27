@@ -1,11 +1,11 @@
 package main
 
 import (
-       "encoding/csv"
+	"encoding/csv"
 	"flag"
 	_ "fmt"
-	"github.com/whosonfirst/go-whosonfirst-redis/pubsub"	
-	"github.com/whosonfirst/go-whosonfirst-updated-v2"	
+	"github.com/whosonfirst/go-whosonfirst-redis/pubsub"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"github.com/whosonfirst/go-whosonfirst-updated-v2/processor"
 	"io"
 	"log"
@@ -19,7 +19,9 @@ func main() {
 	var redis_port = flag.Int("redis-port", 6379, "Redis port")
 	var redis_channel = flag.String("redis-channel", "updated", "Redis channel")
 	var pubsub_daemon = flag.Bool("pubsubd", false, "")
-	
+
+	flag.Parse()
+
 	ps_messages := make(chan string)
 	up_messages := make(chan updated.Task)
 
@@ -49,7 +51,6 @@ func main() {
 		}
 	}
 
-
 	// sudo make a generic receiver interface for things other than pubsub...
 	// (20171227/thisisaaronland)
 
@@ -58,7 +59,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
+	defer sub.Close()
+
 	go sub.Subscribe(*redis_channel, ps_messages)
 
 	go func() {
@@ -138,21 +141,21 @@ func main() {
 	}
 
 	processors = append(processors, cp)
-	
+
 	for {
 
 		select {
 
-		       case t := <- up_messages:
+		case t := <-up_messages:
 
-		       	for _, pr := range processors {
+			for _, pr := range processors {
 				pr.ProcessTask(t)
 			}
 
-		       default:
-			    // pass
-	        }
+		default:
+			// pass
+		}
 	}
-	
+
 	os.Exit(0)
 }

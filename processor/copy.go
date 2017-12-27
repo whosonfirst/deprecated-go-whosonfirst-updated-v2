@@ -1,8 +1,8 @@
 package processor
 
 import (
-	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"github.com/whosonfirst/go-whosonfirst-readwrite/reader"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"log"
 )
 
@@ -19,7 +19,7 @@ func NewCopyProcessor() (Processor, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// w := reader.NewNullWriter()
 
 	d := CopyProcessor{
@@ -31,11 +31,11 @@ func NewCopyProcessor() (Processor, error) {
 }
 
 func (d *CopyProcessor) Name() string {
-     return "copy"
+	return "copy"
 }
 
 func (d *CopyProcessor) Flush() error {
-     return nil
+	return nil
 }
 
 // this received a CSV blob containing rows of commit_hash, repo, path
@@ -49,7 +49,7 @@ func (d *CopyProcessor) ProcessTask(task updated.Task) error {
 	}
 
 	for _, path := range task.Commits {
-	
+
 		fh, err := r.Read(path)
 
 		if err != nil {

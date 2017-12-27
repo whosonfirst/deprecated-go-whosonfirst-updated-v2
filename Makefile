@@ -35,3 +35,4 @@ fmt:
 
 bin: 	rmdeps self
 	@GOPATH=$(shell pwd) go build -o bin/wof-updated cmd/wof-updated.go
+	@GOPATH=$(shell pwd) go build -o bin/wof-updated-replay cmd/wof-updated-replay.go

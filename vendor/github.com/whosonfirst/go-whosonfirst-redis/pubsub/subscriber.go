@@ -6,8 +6,8 @@ import (
 )
 
 type Subscriber struct {
-     redis_client      *redis.Client
-     pubsub_client     *redis.PubSub
+	redis_client  *redis.Client
+	pubsub_client *redis.PubSub
 }
 
 func NewSubscriber(host string, port int) (*Subscriber, error) {
