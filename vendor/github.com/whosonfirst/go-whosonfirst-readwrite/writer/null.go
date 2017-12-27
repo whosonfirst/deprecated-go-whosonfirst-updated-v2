@@ -1,7 +1,8 @@
 package writer
 
 import (
-       "io"
+	"io"
+	_ "log"
 )
 
 type NullWriter struct {
@@ -14,7 +15,7 @@ func NewNullWriter() (Writer, error) {
 	return &w, nil
 }
 
-func Write(fh io.ReadCloser) error {
+func (w *NullWriter) Write(path string, fh io.ReadCloser) error {
 	// maybe drain fh here?
 	return nil
 }

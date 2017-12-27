@@ -2,6 +2,7 @@ package processor
 
 import (
 	"github.com/whosonfirst/go-whosonfirst-readwrite/reader"
+	"github.com/whosonfirst/go-whosonfirst-readwrite/writer"	
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"log"
 )
@@ -9,7 +10,7 @@ import (
 type CopyProcessor struct {
 	Processor
 	reader reader.Reader
-	// writer writer.Writer
+	writer writer.Writer	// please for to add multi writer support
 }
 
 func NewCopyProcessor() (Processor, error) {
@@ -20,29 +21,33 @@ func NewCopyProcessor() (Processor, error) {
 		return nil, err
 	}
 
-	// w := reader.NewNullWriter()
+	w, err := writer.NewNullWriter()
 
-	d := CopyProcessor{
-		reader: r,
-		// writer: w,
+	if err != nil {
+		return nil, err
 	}
 
-	return &d, nil
+	pr := CopyProcessor{
+		reader: r,
+		writer: w,
+	}
+
+	return &pr, nil
 }
 
-func (d *CopyProcessor) Name() string {
+func (pr *CopyProcessor) Name() string {
 	return "copy"
 }
 
-func (d *CopyProcessor) Flush() error {
+func (pr *CopyProcessor) Flush() error {
 	return nil
 }
 
 // this received a CSV blob containing rows of commit_hash, repo, path
 
-func (d *CopyProcessor) ProcessTask(task updated.Task) error {
+func (pr *CopyProcessor) ProcessTask(task updated.Task) error {
 
-	r, err := reader.NewGitHubReader(task.Repo)
+	_, err := reader.NewGitHubReader(task.Repo)
 
 	if err != nil {
 		return err
@@ -50,13 +55,19 @@ func (d *CopyProcessor) ProcessTask(task updated.Task) error {
 
 	for _, path := range task.Commits {
 
-		fh, err := r.Read(path)
+		log.Println("COPY", path)
+		
+		fh, err := pr.reader.Read(path)
 
 		if err != nil {
 			return err
 		}
-
-		log.Println(fh)
+		
+		err = pr.writer.Write(path, fh)
+		
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -74,7 +74,15 @@ func main() {
 			// https://github.com/whosonfirst/go-webhookd/blob/master/transformations/github.commits.go
 
 			msg := <-ps_messages
+			
+			msg = strings.Trim(msg, " ")
 
+			log.Printf("GOT MESSAGE '%s'\n", msg)
+			
+			if msg == "" {
+				continue
+			}	
+			
 			rdr := csv.NewReader(strings.NewReader(msg))
 
 			tasks := make(map[string]map[string][]string)
@@ -149,6 +157,7 @@ func main() {
 		case t := <-up_messages:
 
 			for _, pr := range processors {
+			    	log.Println("HANDLE TASK", t)
 				pr.ProcessTask(t)
 			}
 

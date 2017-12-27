@@ -140,7 +140,7 @@ func main() {
 
 	log.Printf("sending %d rows\n", rows)
 
-	if !*dryrun {
+	if rows > 0 && !*dryrun {
 
 		pub, err := pubsub.NewPublisher(*redis_host, *redis_port)
 
