@@ -4,6 +4,8 @@ import (
 	"encoding/csv"
 	"flag"
 	_ "fmt"
+	"github.com/whosonfirst/go-webhookd/config"
+	"github.com/whosonfirst/go-webhookd/daemon"
 	"github.com/whosonfirst/go-whosonfirst-redis/pubsub"
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"github.com/whosonfirst/go-whosonfirst-updated-v2/processor"
@@ -19,11 +21,37 @@ func main() {
 	var redis_port = flag.Int("redis-port", 6379, "Redis port")
 	var redis_channel = flag.String("redis-channel", "updated", "Redis channel")
 	var pubsub_daemon = flag.Bool("pubsubd", false, "")
+	var webhook_daemon = flag.Bool("webhookd", false, "")
+	var webhook_config = flag.String("webhookd-config", "", "")
 
 	flag.Parse()
 
 	ps_messages := make(chan string)
 	up_messages := make(chan updated.Task)
+
+	if *webhook_daemon {
+
+		wh_config, err := config.NewConfigFromFile(*webhook_config)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		wh_daemon, err := daemon.NewWebhookDaemonFromConfig(wh_config)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go func() {
+			err = wh_daemon.Start()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		}()
+	}
 
 	if *pubsub_daemon {
 

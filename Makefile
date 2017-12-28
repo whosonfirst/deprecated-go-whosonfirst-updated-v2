@@ -17,6 +17,7 @@ rmdeps:
 build:	fmt bin
 
 deps:
+	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-webhookd"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-redis"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-readwrite/..."
 	@GOPATH=$(GOPATH) go get -u "gopkg.in/redis.v1"
