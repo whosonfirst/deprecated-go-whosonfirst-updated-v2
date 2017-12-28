@@ -1,4 +1,4 @@
-package processor
+package process
 
 import (
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"

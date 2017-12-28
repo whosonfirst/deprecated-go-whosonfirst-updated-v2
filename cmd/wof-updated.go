@@ -6,9 +6,13 @@ import (
 	_ "fmt"
 	"github.com/whosonfirst/go-webhookd/config"
 	"github.com/whosonfirst/go-webhookd/daemon"
+	_ "github.com/whosonfirst/go-whosonfirst-readwrite/reader"
+	"github.com/whosonfirst/go-whosonfirst-readwrite/writer"
 	"github.com/whosonfirst/go-whosonfirst-redis/pubsub"
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"
-	"github.com/whosonfirst/go-whosonfirst-updated-v2/processor"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2/copy"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2/flags"
+	"github.com/whosonfirst/go-whosonfirst-updated-v2/process"
 	"io"
 	"log"
 	"os"
@@ -17,12 +21,17 @@ import (
 
 func main() {
 
-	var redis_host = flag.String("redis-host", "localhost", "Redis host")
-	var redis_port = flag.Int("redis-port", 6379, "Redis port")
-	var redis_channel = flag.String("redis-channel", "updated", "Redis channel")
+	var pubsub_host = flag.String("redis-host", "localhost", "Redis host")
+	var pubsub_port = flag.Int("redis-port", 6379, "Redis port")
+	var pubsub_channel = flag.String("redis-channel", "updated", "Redis channel")
+
 	var pubsub_daemon = flag.Bool("pubsubd", false, "")
+
 	var webhook_daemon = flag.Bool("webhookd", false, "")
 	var webhook_config = flag.String("webhookd-config", "", "")
+
+	var copy_flags flags.CopyFlags
+	flag.Var(&copy_flags, "copy", "")
 
 	flag.Parse()
 
@@ -55,7 +64,7 @@ func main() {
 
 	if *pubsub_daemon {
 
-		server, err := pubsub.NewServer(*redis_host, *redis_port)
+		server, err := pubsub.NewServer(*pubsub_host, *pubsub_port)
 
 		if err != nil {
 			log.Fatal(err)
@@ -82,7 +91,7 @@ func main() {
 	// sudo make a generic receiver interface for things other than pubsub...
 	// (20171227/thisisaaronland)
 
-	sub, err := pubsub.NewSubscriber(*redis_host, *redis_port)
+	sub, err := pubsub.NewSubscriber(*pubsub_host, *pubsub_port)
 
 	if err != nil {
 		log.Fatal(err)
@@ -90,7 +99,7 @@ func main() {
 
 	defer sub.Close()
 
-	go sub.Subscribe(*redis_channel, ps_messages)
+	go sub.Subscribe(*pubsub_channel, ps_messages)
 
 	go func() {
 
@@ -172,15 +181,52 @@ func main() {
 		}
 	}()
 
-	processors := make([]processor.Processor, 0)
+	processors := make([]process.Processor, 0)
 
-	cp, err := processor.NewCopyProcessor()
+	var writers []writer.Writer
+
+	null_writer, err := writer.NewNullWriter()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	processors = append(processors, cp)
+	writers = append(writers, null_writer)
+
+	for _, fl := range copy_flags.Flags {
+
+		if strings.HasPrefix(fl, "s3#") {
+
+			str_cfg := strings.Replace(fl, "s3#", "", -1)
+			s3_cfg, err := writer.NewS3ConfigFromString(str_cfg)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			s3_writer, err := writer.NewS3Writer(s3_cfg)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			writers = append(writers, s3_writer)
+		}
+	}
+
+	multi_writer, err := writer.NewMultiWriter(writers...)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gh_copier, err := copy.NewGitHubCopier(multi_writer)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	processors = append(processors, gh_copier)
 
 	for {
 
