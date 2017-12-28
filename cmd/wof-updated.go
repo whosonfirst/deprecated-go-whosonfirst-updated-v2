@@ -74,15 +74,15 @@ func main() {
 			// https://github.com/whosonfirst/go-webhookd/blob/master/transformations/github.commits.go
 
 			msg := <-ps_messages
-			
+
 			msg = strings.Trim(msg, " ")
 
 			// log.Printf("GOT MESSAGE '%s'\n", msg)
-			
+
 			if msg == "" {
 				continue
-			}	
-			
+			}
+
 			rdr := csv.NewReader(strings.NewReader(msg))
 
 			tasks := make(map[string]map[string][]string)
@@ -123,7 +123,7 @@ func main() {
 				if strings.HasPrefix(path, "data/") {
 					path = strings.Replace(path, "data/", "", -1)
 				}
-				
+
 				commits = append(commits, path)
 				tasks[repo][hash] = commits
 			}

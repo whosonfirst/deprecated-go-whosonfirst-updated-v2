@@ -2,7 +2,7 @@ package processor
 
 import (
 	"github.com/whosonfirst/go-whosonfirst-readwrite/reader"
-	"github.com/whosonfirst/go-whosonfirst-readwrite/writer"	
+	"github.com/whosonfirst/go-whosonfirst-readwrite/writer"
 	"github.com/whosonfirst/go-whosonfirst-updated-v2"
 	"log"
 )
@@ -10,7 +10,7 @@ import (
 type CopyProcessor struct {
 	Processor
 	reader reader.Reader
-	writer writer.Writer	// please for to add multi writer support
+	writer writer.Writer // please for to add multi writer support
 }
 
 func NewCopyProcessor() (Processor, error) {
@@ -21,26 +21,38 @@ func NewCopyProcessor() (Processor, error) {
 		return nil, err
 	}
 
-	w, err := writer.NewNullWriter()
-
 	/*
-	cfg := writer.S3Config{
-		Bucket: "data.whosonfirst.org",
-		Prefix: "",
-		Region: "us-east-1",
-		Credentials: "whosonfirst",
-	}
-	
-	w, err := writer.NewS3Writer(cfg)
+		cfg := writer.S3Config{
+			Bucket: "data.whosonfirst.org",
+			Prefix: "",
+			Region: "us-east-1",
+			Credentials: "whosonfirst",
+		}
+
+		w, err := writer.NewS3Writer(cfg)
 	*/
-	
+
+	nw, err := writer.NewNullWriter()
+
+	if err != nil {
+		return nil, err
+	}
+
+	sw, err := writer.NewStdoutWriter()
+
+	if err != nil {
+		return nil, err
+	}
+
+	mw, err := writer.NewMultiWriter(nw, sw)
+
 	if err != nil {
 		return nil, err
 	}
 
 	pr := CopyProcessor{
 		reader: r,
-		writer: w,
+		writer: mw,
 	}
 
 	return &pr, nil
@@ -67,20 +79,20 @@ func (pr *CopyProcessor) ProcessTask(task updated.Task) error {
 	for _, path := range task.Commits {
 
 		log.Println("COPY", path)
-		
+
 		fh, err := r.Read(path)
 
 		if err != nil {
-		   	log.Println("ERR", path, err)
+			log.Println("ERR", path, err)
 			continue
 		}
-		
+
 		err = pr.writer.Write(path, fh)
 
-	      	fh.Close()
-		
+		fh.Close()
+
 		if err != nil {
-		   	log.Println("ERR", path, err)
+			log.Println("ERR", path, err)
 			continue
 		}
 	}
