@@ -77,7 +77,7 @@ func main() {
 			
 			msg = strings.Trim(msg, " ")
 
-			log.Printf("GOT MESSAGE '%s'\n", msg)
+			// log.Printf("GOT MESSAGE '%s'\n", msg)
 			
 			if msg == "" {
 				continue
@@ -120,6 +120,10 @@ func main() {
 					commits = make([]string, 0)
 				}
 
+				if strings.HasPrefix(path, "data/") {
+					path = strings.Replace(path, "data/", "", -1)
+				}
+				
 				commits = append(commits, path)
 				tasks[repo][hash] = commits
 			}
@@ -157,7 +161,6 @@ func main() {
 		case t := <-up_messages:
 
 			for _, pr := range processors {
-			    	log.Println("HANDLE TASK", t)
 				pr.ProcessTask(t)
 			}
 

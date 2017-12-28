@@ -23,6 +23,17 @@ func NewCopyProcessor() (Processor, error) {
 
 	w, err := writer.NewNullWriter()
 
+	/*
+	cfg := writer.S3Config{
+		Bucket: "data.whosonfirst.org",
+		Prefix: "",
+		Region: "us-east-1",
+		Credentials: "whosonfirst",
+	}
+	
+	w, err := writer.NewS3Writer(cfg)
+	*/
+	
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +58,7 @@ func (pr *CopyProcessor) Flush() error {
 
 func (pr *CopyProcessor) ProcessTask(task updated.Task) error {
 
-	_, err := reader.NewGitHubReader(task.Repo)
+	r, err := reader.NewGitHubReader(task.Repo, "master")
 
 	if err != nil {
 		return err
@@ -57,18 +68,23 @@ func (pr *CopyProcessor) ProcessTask(task updated.Task) error {
 
 		log.Println("COPY", path)
 		
-		fh, err := pr.reader.Read(path)
+		fh, err := r.Read(path)
 
 		if err != nil {
-			return err
+		   	log.Println("ERR", path, err)
+			continue
 		}
 		
 		err = pr.writer.Write(path, fh)
+
+	      	fh.Close()
 		
 		if err != nil {
-			return err
+		   	log.Println("ERR", path, err)
+			continue
 		}
 	}
 
+	// log.Println("DONE TASK")
 	return nil
 }

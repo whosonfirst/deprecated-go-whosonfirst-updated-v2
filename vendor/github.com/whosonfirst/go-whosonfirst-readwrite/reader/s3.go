@@ -1,5 +1,10 @@
 package reader
 
+// this is pretty much a clone of writer/s3.go and will be merged
+// in to https://github.com/whosonfirst/go-whosonfirst-s3/
+// see also: https://github.com/thisisaaronland/go-iiif/blob/master/aws/s3.go
+// (20171217/thisisaaronland)
+
 import (
 	"errors"
 	"github.com/aws/aws-sdk-go/aws"
