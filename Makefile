@@ -42,3 +42,9 @@ fmt:
 bin: 	rmdeps self
 	@GOPATH=$(shell pwd) go build -o bin/wof-updated cmd/wof-updated.go
 	@GOPATH=$(shell pwd) go build -o bin/wof-updated-replay cmd/wof-updated-replay.go
+
+docker-build: bin
+	docker build -t wof-updated .
+
+docker-run:
+	docker run -it -p 6379:6379 wof-updated

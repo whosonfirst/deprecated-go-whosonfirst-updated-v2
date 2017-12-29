@@ -19,8 +19,7 @@ RUN cd /go-whosonfirst-updated-v2; make bin
 
 FROM alpine
 
-# RUN apk add --update bzip2 curl
-# VOLUME /usr/local/data
+RUN apk add --update ca-certificates
 
 WORKDIR /whosonfirst/bin/
 

@@ -132,7 +132,7 @@ func main() {
 
 	writer.Flush()
 	buf.Flush()
-	
+
 	// see above inre multiwriters...
 
 	if *verbose {

@@ -5,7 +5,7 @@ import (
 )
 
 type Processor interface {
-	ProcessTask(task updated.Task) error
+	ProcessTask(updated.Task, chan string, chan error, chan bool)
 	Name() string
 	Flush() error
 }
