@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	_ "log"
 	"os"
 	"strconv"
 )
@@ -26,18 +27,18 @@ type RESPReader struct {
 	*bufio.Reader
 }
 
-func NewRESPReader(reader io.Reader) *RESPReader {
+func NewRESPReader(reader io.Reader, sz int) *RESPReader {
 	return &RESPReader{
-		Reader: bufio.NewReaderSize(reader, 32*1024),
+		Reader: bufio.NewReaderSize(reader, sz),
 	}
 }
 
-func NewRESPDebugReader(reader io.Reader) *RESPReader {
+func NewRESPDebugReader(reader io.Reader, sz int) *RESPReader {
 
 	tee := io.TeeReader(reader, os.Stdout)
 
 	return &RESPReader{
-		Reader: bufio.NewReaderSize(tee, 32*1024),
+		Reader: bufio.NewReaderSize(tee, sz),
 	}
 }
 

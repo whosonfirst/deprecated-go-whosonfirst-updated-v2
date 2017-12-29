@@ -29,6 +29,7 @@ type Server struct {
 	conns         map[string]net.Conn
 	mu            *sync.Mutex
 	Debug         bool
+	ReaderSize    int
 }
 
 func NewServer(host string, port int) (*Server, error) {
@@ -50,6 +51,7 @@ func NewServer(host string, port int) (*Server, error) {
 		subscriptions: subs,
 		mu:            mu,
 		Debug:         false,
+		ReaderSize:    256 * 1024,
 	}
 
 	return &s, nil
@@ -105,11 +107,11 @@ func (s *Server) receive(conn net.Conn) {
 	client := s.whoami(conn)
 	// log.Printf("%s CONNECT", client)
 
-	reader := resp.NewRESPReader(conn)
+	reader := resp.NewRESPReader(conn, s.ReaderSize)
 	writer := resp.NewRESPWriter(conn)
 
 	if s.Debug {
-		reader = resp.NewRESPDebugReader(conn)
+		reader = resp.NewRESPDebugReader(conn, s.ReaderSize)
 		writer = resp.NewRESPDebugWriter(conn)
 	}
 
