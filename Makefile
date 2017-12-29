@@ -23,6 +23,7 @@ deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-redis"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-readwrite/..."
 	@GOPATH=$(GOPATH) go get -u "gopkg.in/redis.v1"
+	rm -rf src/github.com/whosonfirst/go-webhookd/vendor/github.com/golang
 
 vendor-deps: rmdeps deps
 	if test ! -d vendor; then mkdir vendor; fi

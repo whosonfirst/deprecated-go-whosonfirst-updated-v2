@@ -131,7 +131,8 @@ func main() {
 	}
 
 	writer.Flush()
-
+	buf.Flush()
+	
 	// see above inre multiwriters...
 
 	if *verbose {
@@ -153,7 +154,7 @@ func main() {
 		err = pub.Publish(*redis_channel, b.String())
 
 		if err != nil {
-			log.Fatal(err)
+			// log.Fatal(err)
 		}
 	}
 

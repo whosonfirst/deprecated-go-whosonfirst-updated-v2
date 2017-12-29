@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -59,6 +60,7 @@ func main() {
 				log.Fatal(err)
 			}
 
+			log.Println("Ready to receive (updated) Webhook messages")
 		}()
 	}
 
@@ -86,6 +88,8 @@ func main() {
 		if !sig {
 			log.Fatal("Received negative ready signal from PubSub server")
 		}
+
+		log.Println("Ready to receive (updated) PubSub messages")
 	}
 
 	// sudo make a generic receiver interface for things other than pubsub...
@@ -107,78 +111,74 @@ func main() {
 
 		for {
 
-			// we are assuming this:
-			// https://github.com/whosonfirst/go-webhookd/blob/master/transformations/github.commits.go
-
 			msg := <-ps_messages
 
-			msg = strings.Trim(msg, " ")
+				msg = strings.Trim(msg, " ")
 
-			// log.Printf("GOT MESSAGE '%s'\n", msg)
-
-			if msg == "" {
-				continue
-			}
-
-			rdr := csv.NewReader(strings.NewReader(msg))
-
-			tasks := make(map[string]map[string][]string)
-
-			for {
-				row, err := rdr.Read()
-
-				if err == io.EOF {
-					break
-				}
-
-				if err != nil {
-					log.Println("Failed to read data", err)
-					break
-				}
-
-				if len(row) != 3 {
-					log.Println("No idea how to process row", row)
+				if msg == "" {
 					continue
 				}
 
-				hash := row[0]
-				repo := row[1]
-				path := row[2]
+				rdr := csv.NewReader(strings.NewReader(msg))
 
-				_, ok := tasks[repo]
+				tasks := make(map[string]map[string][]string)
 
-				if !ok {
-					tasks[repo] = make(map[string][]string)
-				}
+				for {
+					row, err := rdr.Read()
 
-				commits, ok := tasks[repo][hash]
-
-				if !ok {
-					commits = make([]string, 0)
-				}
-
-				if strings.HasPrefix(path, "data/") {
-					path = strings.Replace(path, "data/", "", -1)
-				}
-
-				commits = append(commits, path)
-				tasks[repo][hash] = commits
-			}
-
-			for repo, details := range tasks {
-
-				for hash, commits := range details {
-
-					t := updated.Task{
-						Hash:    hash,
-						Repo:    repo,
-						Commits: commits,
+					if err == io.EOF {
+						break
 					}
 
-					up_messages <- t
+					if err != nil {
+						log.Println("Failed to read data", err)
+						// log.Printf("ROW '%s'\n", row)
+						break
+					}
+
+					if len(row) != 3 {
+						log.Println("No idea how to process row", row)
+						continue
+					}
+
+					hash := row[0]
+					repo := row[1]
+					path := row[2]
+
+					_, ok := tasks[repo]
+
+					if !ok {
+						tasks[repo] = make(map[string][]string)
+					}
+
+					commits, ok := tasks[repo][hash]
+
+					if !ok {
+						commits = make([]string, 0)
+					}
+
+					if strings.HasPrefix(path, "data/") {
+						path = strings.Replace(path, "data/", "", -1)
+					}
+
+					commits = append(commits, path)
+					tasks[repo][hash] = commits
 				}
-			}
-		}
+
+				for repo, details := range tasks {
+
+					for hash, commits := range details {
+
+						t := updated.Task{
+							Hash:    hash,
+							Repo:    repo,
+							Commits: commits,
+						}
+
+						up_messages <- t
+					}
+				}
+						}
 	}()
 
 	processors := make([]process.Processor, 0)
@@ -234,12 +234,13 @@ func main() {
 
 		case t := <-up_messages:
 
+			log.Println("GOT TASK", t)
 			for _, pr := range processors {
 				pr.ProcessTask(t)
 			}
 
 		default:
-			// pass
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 
