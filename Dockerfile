@@ -25,6 +25,7 @@ WORKDIR /whosonfirst/bin/
 
 COPY --from=build-env /go-whosonfirst-updated-v2/bin/wof-updated /whosonfirst/bin/wof-updated
 COPY --from=build-env /go-whosonfirst-updated-v2/docker/entrypoint.sh /whosonfirst/bin/entrypoint.sh
+COPY --from=build-env /go-whosonfirst-updated-v2/docker/webhookd-config.json /whosonfirst/bin/webhookd-config.json
 
 EXPOSE 8080
 

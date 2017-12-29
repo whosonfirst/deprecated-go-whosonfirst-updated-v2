@@ -1,0 +1,69 @@
+{
+	"daemon": {
+		"host": "localhost",
+		"port": 8080
+	},
+	"receivers": {
+		"insecure": {
+			"name": "Insecure"
+		},
+		"github": {
+			"name": "GitHub",
+			"secret": "s33kret"
+		}		
+	},	
+	"transformations": {
+		"null": {
+			"name": "Null"
+		},
+		"chicken": {
+			"name": "Chicken",
+			"language": "zxx",
+			"clucking": false
+		},
+		"clucking": {
+			"name": "Chicken",
+			"language": "eng",
+			"clucking": true
+		},
+		"commits": {
+			"name": "GitHubCommits",
+			"exclude_additions": true,
+			"exclude_modifications": true,
+			"exclude_deletions": true
+		}				
+		
+	},
+	"dispatchers": {
+		"null": {
+			"name": "Null"
+		},
+		"log": {
+			"name": "Log"
+		},				
+		"pubsub": {
+			"name": "PubSub",
+			"host": "localhost",
+			"port": 6379,
+			"channel": "webhookd"
+		},
+	},
+	"webhooks": [
+		{
+			"endpoint": "/github-test",
+			"receiver": "github",
+			"dispatchers": [ "pubsub" ]
+		},
+		{
+			"endpoint": "/insecure-test",
+		 	"receiver": "insecure",
+			"dispatchers": [ "log" ]
+		},
+		{
+			"endpoint": "/chicken-test",
+		 	"receiver": "insecure",
+			"transformations": [ "chicken" ],			
+			"dispatchers": [ "log" ]
+		}		
+	]
+}

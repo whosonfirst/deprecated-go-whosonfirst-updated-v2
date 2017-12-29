@@ -39,31 +39,6 @@ func main() {
 	ps_messages := make(chan string)
 	up_messages := make(chan updated.Task)
 
-	if *webhook_daemon {
-
-		wh_config, err := config.NewConfigFromFile(*webhook_config)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		wh_daemon, err := daemon.NewWebhookDaemonFromConfig(wh_config)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		go func() {
-			err = wh_daemon.Start()
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			log.Println("Ready to receive (updated) Webhook messages")
-		}()
-	}
-
 	if *pubsub_daemon {
 
 		server, err := pubsub.NewServer(*pubsub_host, *pubsub_port)
@@ -90,6 +65,34 @@ func main() {
 		}
 
 		log.Println("Ready to receive (updated) PubSub messages")
+	}
+
+	// we start this after -pubsubd so that we can ensure a pubsub daemon to connect to
+	
+	if *webhook_daemon {
+
+		wh_config, err := config.NewConfigFromFile(*webhook_config)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		wh_daemon, err := daemon.NewWebhookDaemonFromConfig(wh_config)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go func() {
+
+			log.Println("Ready to receive (updated) Webhook messages")
+			
+			err = wh_daemon.Start()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	// sudo make a generic receiver interface for things other than pubsub...
@@ -243,7 +246,6 @@ func main() {
 			go func() {
 
 				for {
-
 					select {
 					case s := <-status_ch:
 						log.Println(s)
