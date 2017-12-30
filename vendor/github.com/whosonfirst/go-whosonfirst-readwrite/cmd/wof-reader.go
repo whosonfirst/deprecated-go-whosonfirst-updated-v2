@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/whosonfirst/go-whosonfirst-readwrite/cache"
+	"github.com/whosonfirst/go-whosonfirst-readwrite/flags"
 	"github.com/whosonfirst/go-whosonfirst-readwrite/reader"
 	"github.com/whosonfirst/go-whosonfirst-readwrite/utils"
 	"io/ioutil"
@@ -23,6 +24,10 @@ func main() {
 
 	var cache_source = flag.String("cache", "null", "...")
 
+	var cache_args flags.KeyValueArgs
+	flag.Var(&cache_args, "cache-arg", "(0) or more user-defined '{KEY}={VALUE}' arguments to pass to the caching layer")
+
+	var debug = flag.Bool("debug", false, "...")
 	var dump = flag.Bool("dump", false, "...")
 
 	flag.Parse()
@@ -46,13 +51,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c, err := cache.NewCacheFromSource(*cache_source)
+	c, err := cache.NewCacheFromSource(*cache_source, cache_args.ToMap())
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cr, err := reader.NewCacheReader(r, c)
+	o, err := utils.NewDefaultCacheReaderOptions()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	o.Debug = *debug
+
+	cr, err := utils.NewCacheReader(r, c, o)
 
 	if err != nil {
 		log.Fatal(err)
@@ -60,15 +73,15 @@ func main() {
 
 	for _, path := range flag.Args() {
 
-		ok, err := utils.TestReader(cr, path)
-
-		if err != nil {
-			log.Fatal("TEST", err)
-		}
-
-		log.Println(path, ok)
+		log.Println(path)
 
 		fh, err := cr.Read(path)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = cr.Read(path)
 
 		if err != nil {
 			log.Fatal(err)
