@@ -43,6 +43,10 @@ bin: 	rmdeps self
 	@GOPATH=$(shell pwd) go build -o bin/wof-updated cmd/wof-updated.go
 	@GOPATH=$(shell pwd) go build -o bin/wof-updated-replay cmd/wof-updated-replay.go
 
+debug:
+	if test ! -f docker/webhookd-config.json; then echo "missing docker/webhookd-config.json file, maybe make one from the example config?"; exit 1; fi
+	bin/wof-updated -pubsubd -pubsub-host 0.0.0.0 -webhookd -webhookd-config /whosonfirst/bin/webhookd-config.json
+
 docker-build:
 	if test ! -f docker/webhookd-config.json; then echo "missing docker/webhookd-config.json file, maybe make one from the example config?"; exit 1; fi
 	make bin
