@@ -46,6 +46,12 @@ Which will output (to STDOUT):
 2018/01/19 21:41:15 {"foo":"bar"}
 ```
 
+If you call `curl -s -v -X POST -d '{"foo":"bar"}' localhost:8080/chicken-test` instead you'll end up with this:
+
+```
+2018/01/19 21:46:01 {"🐔":"🐔"}
+```
+
 ## See also
 
 * https://github.com/whosonfirst/go-whosonfirst-updated
