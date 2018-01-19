@@ -6,4 +6,4 @@ This is an experimental rewrite/refactoring of [go-whosonfirst-updated](https://
 
 ## See also
 
-* https://github.com/whosonfirst/go-whosonfirst-updated-v2
+* https://github.com/whosonfirst/go-whosonfirst-updated
