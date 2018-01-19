@@ -45,7 +45,7 @@ bin: 	rmdeps self
 
 debug:
 	if test ! -f docker/webhookd-config.json; then echo "missing docker/webhookd-config.json file, maybe make one from the example config?"; exit 1; fi
-	bin/wof-updated -pubsubd -pubsub-host 0.0.0.0 -webhookd -webhookd-config /whosonfirst/bin/webhookd-config.json
+	bin/wof-updated -pubsubd -pubsub-host 0.0.0.0 -webhookd -webhookd-config docker/webhookd-config.json
 
 docker-build:
 	if test ! -f docker/webhookd-config.json; then echo "missing docker/webhookd-config.json file, maybe make one from the example config?"; exit 1; fi
@@ -54,3 +54,7 @@ docker-build:
 
 docker-run:
 	docker run -it -p 6379:6379 -p 8080:8080 wof-updated
+
+docker-debug:
+	@make docker-build
+	@make docker-run
