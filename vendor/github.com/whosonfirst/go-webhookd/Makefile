@@ -30,7 +30,6 @@ build:	fmt bin
 
 deps:   
 	@GOPATH=$(GOPATH) go get -u "gopkg.in/redis.v1"
-	@GOPATH=$(GOPATH) go get -u "github.com/facebookgo/grace/gracehttp"
 	@GOPATH=$(GOPATH) go get -u "github.com/google/go-github/github"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-writer-slackcat"
 	@GOPATH=$(GOPATH) go get -u "github.com/thisisaaronland/go-chicken"
@@ -59,7 +58,6 @@ bin: 	rmdeps self
 	@GOPATH=$(shell pwd) go build -o bin/webhookd-generate-hook cmd/webhookd-generate-hook.go
 
 debug:
-	if test ! -f ./config.json; then echo "missing config.json file - maybe create one using config.json.example?"; exit 1; fi
 	bin/webhookd -config ./config.json
 
 hook:
