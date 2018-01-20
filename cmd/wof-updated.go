@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// we start this after -pubsubd so that we can ensure a pubsub daemon to connect to
-	
+
 	if *webhook_daemon {
 
 		wh_config, err := config.NewConfigFromFile(*webhook_config)
@@ -86,7 +86,7 @@ func main() {
 		go func() {
 
 			log.Println("Ready to receive (updated) Webhook messages")
-			
+
 			err = wh_daemon.Start()
 
 			if err != nil {
