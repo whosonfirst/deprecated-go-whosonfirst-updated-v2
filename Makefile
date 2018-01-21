@@ -7,7 +7,6 @@ prep:
 self:   prep
 	if test -d src/github.com/whosonfirst/go-whosonfirst-updated-v2; then rm -rf src/github.com/whosonfirst/go-whosonfirst-updated-v2; fi
 	mkdir -p src/github.com/whosonfirst/go-whosonfirst-updated-v2
-	cp -r copy src/github.com/whosonfirst/go-whosonfirst-updated-v2/
 	cp -r flags src/github.com/whosonfirst/go-whosonfirst-updated-v2/
 	cp -r process src/github.com/whosonfirst/go-whosonfirst-updated-v2/
 	cp *.go src/github.com/whosonfirst/go-whosonfirst-updated-v2/
@@ -34,9 +33,9 @@ vendor-deps: rmdeps deps
 
 fmt:
 	go fmt cmd/*.go
-	go fmt copy/*.go
 	go fmt flags/*.go
 	go fmt process/*.go
+	go fmt process/copy/*.go
 	go fmt *.go
 
 bin: 	rmdeps self
